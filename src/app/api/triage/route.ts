@@ -1,34 +1,9 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { generateObject } from "ai";
-import { z } from "zod";
+import { generateText } from "ai";
 
 const openrouter = createOpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API_KEY,
-});
-
-const triageSchema = z.object({
-  category: z.enum([
-    "billing",
-    "support",
-    "complaint",
-    "refund",
-    "inquiry",
-    "praise",
-    "other",
-  ]),
-  priority: z.enum(["urgent", "high", "medium", "low"]),
-  sentiment: z.enum(["positive", "neutral", "negative", "angry"]),
-  summary: z.string().describe("One sentence summary of the email"),
-  keyIssues: z.array(z.string()).describe("2-4 key issues or requests"),
-  suggestedAction: z
-    .string()
-    .describe("What the business owner should do next"),
-  draftReply: z
-    .string()
-    .describe(
-      "A professional, empathetic reply draft ready to send (2-4 short paragraphs)"
-    ),
 });
 
 export async function POST(req: Request) {
@@ -45,32 +20,32 @@ export async function POST(req: Request) {
     return Response.json({ error: "Email content is required" }, { status: 400 });
   }
 
-  const result = await generateObject({
+  const { text } = await generateText({
     model: openrouter("meta-llama/llama-3.1-8b-instruct:free"),
-    schema: triageSchema,
-    prompt: `You are an expert customer success manager. Analyze this customer email and provide a structured triage response.
+    prompt: `You are an expert customer success manager. Analyze this customer email and respond with ONLY a valid JSON object — no markdown, no explanation, just the JSON.
 
 Customer Email:
 ---
 ${email}
 ---
 
-Analyze the email and provide:
-1. The category (billing/support/complaint/refund/inquiry/praise/other)
-2. Priority level (urgent if safety/legal risk or major revenue impact, high if customer is very upset or blocked, medium for general issues, low for minor questions)
-3. Sentiment (positive/neutral/negative/angry)
-4. A one-sentence summary
-5. 2-4 key issues or requests
-6. What the business owner should do next (concrete action)
-7. A professional, empathetic draft reply that addresses all the key issues
+Respond with this exact JSON structure:
+{
+  "category": "<one of: billing|support|complaint|refund|inquiry|praise|other>",
+  "priority": "<one of: urgent|high|medium|low>",
+  "sentiment": "<one of: positive|neutral|negative|angry>",
+  "summary": "<one sentence summary>",
+  "keyIssues": ["<issue 1>", "<issue 2>", "<issue 3>"],
+  "suggestedAction": "<concrete next action for the business owner>",
+  "draftReply": "<professional empathetic reply, 2-4 short paragraphs, no placeholders, write as the business>"
+}
 
-For the draft reply:
-- Use a warm, professional tone
-- Address all key issues
-- Be concise (2-4 short paragraphs)
-- End with a clear next step
-- Don't use placeholders like [Your Name] - write as the business`,
+Priority guide: urgent=safety/legal risk or major revenue impact, high=customer very upset or blocked, medium=general issues, low=minor questions.`,
   });
 
-  return Response.json(result.object);
+  // Strip any markdown code fences the model might add
+  const clean = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  const data = JSON.parse(clean);
+
+  return Response.json(data);
 }
