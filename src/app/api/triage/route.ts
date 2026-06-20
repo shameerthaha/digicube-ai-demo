@@ -27,6 +27,13 @@ const triageSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return Response.json(
+      { error: "ANTHROPIC_API_KEY is not configured. Add it to your Vercel environment variables." },
+      { status: 503 }
+    );
+  }
+
   const { email } = await req.json();
 
   if (!email?.trim()) {
