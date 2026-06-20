@@ -1,6 +1,11 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { createOpenAI } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
+
+const openrouter = createOpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 const triageSchema = z.object({
   category: z.enum([
@@ -27,9 +32,9 @@ const triageSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.OPENROUTER_API_KEY) {
     return Response.json(
-      { error: "ANTHROPIC_API_KEY is not configured. Add it to your Vercel environment variables." },
+      { error: "OPENROUTER_API_KEY is not configured. Add it to your Vercel environment variables." },
       { status: 503 }
     );
   }
@@ -41,7 +46,7 @@ export async function POST(req: Request) {
   }
 
   const result = await generateObject({
-    model: anthropic("claude-sonnet-4-6"),
+    model: openrouter("meta-llama/llama-3.1-8b-instruct:free"),
     schema: triageSchema,
     prompt: `You are an expert customer success manager. Analyze this customer email and provide a structured triage response.
 

@@ -249,7 +249,7 @@ export default function Home() {
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-full flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-slate-600 font-medium">Analyzing with Claude AI...</p>
+                  <p className="text-slate-600 font-medium">Analyzing with AI...</p>
                   <p className="text-sm text-slate-400 mt-1">Usually takes 2–4 seconds</p>
                 </div>
               </div>
