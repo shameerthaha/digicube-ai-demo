@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   let text: string;
   try {
     const result = await generateText({
-      model: openrouter("meta-llama/llama-3.1-8b-instruct:free"),
+      model: openrouter("google/gemini-2.0-flash-exp:free"),
       prompt: `You are an expert customer success manager. Analyze this customer email and respond with ONLY a valid JSON object — no markdown, no explanation, just the JSON.
 
 Customer Email:
