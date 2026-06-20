@@ -4,6 +4,10 @@ import { generateText } from "ai";
 const openrouter = createOpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API_KEY,
+  headers: {
+    "HTTP-Referer": "https://digicube-ai-demo.vercel.app",
+    "X-Title": "DigiCube AI Email Triage",
+  },
 });
 
 export async function POST(req: Request) {
@@ -23,7 +27,7 @@ export async function POST(req: Request) {
   let text: string;
   try {
     const result = await generateText({
-      model: openrouter("meta-llama/llama-3.3-70b-instruct:free"),
+      model: openrouter("google/gemma-4-31b-it:free"),
       prompt: `You are an expert customer success manager. Analyze this customer email and respond with ONLY a valid JSON object — no markdown, no explanation, just the JSON.
 
 Customer Email:
